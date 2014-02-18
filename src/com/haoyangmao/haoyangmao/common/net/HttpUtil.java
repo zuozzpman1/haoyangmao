@@ -32,7 +32,7 @@ public class HttpUtil {
             .newFixedThreadPool(THREAD_POOL_SIZE);
 
     /**
-     * 发送get请求
+     * 同步发送get请求
      * 
      * @param userAgent
      * @param url
@@ -57,6 +57,12 @@ public class HttpUtil {
         return entity.getContent();
     }
 
+    /**
+     * 异步发送get请求
+     * @param userAgent
+     * @param url
+     * @param observer
+     */
     public static void doGetAsync(final String userAgent, String url, final NetObserver observer) {
         new AsyncTask<String, Void, Void>() {
 
