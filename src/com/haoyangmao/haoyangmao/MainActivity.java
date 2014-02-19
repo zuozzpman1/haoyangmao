@@ -1,6 +1,20 @@
 
 package com.haoyangmao.haoyangmao;
 
+import com.haoyangmao.haoyangmao.common.net.HttpEntityFactroy;
+import com.haoyangmao.haoyangmao.common.net.HttpUtil;
+import com.haoyangmao.haoyangmao.common.net.NetObserver;
+
+import org.apache.http.HttpEntity;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 import android.app.ActionBar;
@@ -10,14 +24,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -158,8 +171,67 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             View rootView = inflater.inflate(R.layout.fragment_main_dummy, container, false);
             TextView dummyTextView = (TextView)rootView.findViewById(R.id.section_label);
             dummyTextView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+            
+            
+            Button sendButton = (Button)rootView.findViewById(R.id.send);
+            
+            final TextView result = (TextView)rootView.findViewById(R.id.results);
+            sendButton.setOnClickListener(new OnClickListener() {
+                
+                @Override
+                public void onClick(View v) {
+                    testHttpRequest(result);
+                }
+            });
+            
             return rootView;
         }
+        
+        /**
+         * 测试网络连接
+         * @param container
+         */
+        private void testHttpRequest(final TextView container) {
+            String url = "http://www.baidu.com";
+            HttpEntity entity = null;
+            try {
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("xiaozhi", "xiaozhi");
+                entity = HttpEntityFactroy.createEntityByJsonObj(jsonObj);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            HttpUtil.doPostAsync("xiaozhi", url, entity, new NetObserver() {
+                
+                @Override
+                public Object onInputStream(InputStream in) throws IOException {
+                    InputStreamReader reader = new InputStreamReader(in);
+                    BufferedReader bufferedReader = new BufferedReader(reader);
+                    
+                    StringBuffer sb = new StringBuffer();
+                    String content = null;
+                    while((content = bufferedReader.readLine()) != null) {
+                        sb.append(content);
+                        sb.append("\n");
+                    }
+                    
+                    return sb.toString();
+                }
+                
+                @Override
+                public void onException(Exception ex) {
+                }
+
+                @Override
+                public void onPostExecute(Object result) {
+                    container.setText((String)result);
+                }
+            });
+        }
+        
     }
+    
 
 }
